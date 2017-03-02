@@ -9,10 +9,17 @@ import (
 	"os"
 	"strings"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/opesun/goquery"
 )
 
+var opts struct {
+	FileNameCompany string `short:"o" long:"open" default:"./names.txt" description:"With the names of the companies file"`
+	FileFinal       string `short:"f" long:"final" default:"./final.csv" description:"The file with the saved information about the companies"`
+}
+
 func main() {
+	flags.Parse(&opts)
 	pwdDir, _ := os.Getwd()
 	// создание файла log
 	fLog, err := os.OpenFile(pwdDir+`/log.txt`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
@@ -24,7 +31,7 @@ func main() {
 	defer fLog.Close()
 
 	// создание файла отчета
-	file, err := os.OpenFile(pwdDir+`/new.csv`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile(opts.FileFinal, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -43,7 +50,7 @@ func main() {
 
 	// разобрать названия компаний для перебора
 	var massName []string
-	fileOpen, err := os.Open(pwdDir + `/1.txt`)
+	fileOpen, err := os.Open(opts.FileNameCompany)
 	if err != nil {
 		log.Fatalln(err)
 	}

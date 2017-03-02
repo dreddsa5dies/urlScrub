@@ -1,6 +1,27 @@
 ![IMAGE](img/urlScrub.png)
 ### urlScrub, программа для поиска данных о компаниях на [СБИС](http://sbis.ru)
 
-Считывает названия компаний из фала 1.txt построчно  
-Формат вывода в csv  
-Еще есть проблемы, ISSUE засылать на viktor.vladimirovich.solovev@gmail.com
+## Features
+* Поиск и запись данных о компаниях
+
+## Demo
+![IMAGE ALT TEXT HERE](img/demo.png))
+
+### Usage
+
+```
+local> urlScrub -h
+
+```
+
+## License
+This project is licensed under MIT license. Please read the LICENSE file.
+
+
+## Contribute
+Welcomes any kind of contribution, please follow the next steps:
+
+- Fork the project on github.com.
+- Create a new branch.
+- Commit changes to the new branch.
+- Send a pull request.
