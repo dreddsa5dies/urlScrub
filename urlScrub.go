@@ -59,7 +59,6 @@ func main() {
 	scanner := bufio.NewScanner(fileOpen)
 	for scanner.Scan() {
 		massName = append(massName, scanner.Text())
-		log.Println(scanner.Text())
 		log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 	}
 	if err := scanner.Err(); err != nil {
@@ -98,17 +97,15 @@ func main() {
 			k := strings.Split(j, `&amp;sa=U&amp;ved=`)
 			// итоговая ссылка готова
 			urlsSearchs = append(urlsSearchs, "h"+k[0])
-			log.Println("h" + k[0])
 			log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 		}
 
-		lenUrl := 3
+		lenURL := 3
 		if len(urlsSearchs) < 3 {
-			lenUrl = len(urlsSearchs)
+			lenURL = len(urlsSearchs)
 		}
-		for o := 0; o < lenUrl; o++ {
-			searchUrl(urlsSearchs[o], file)
-			log.Println(urlsSearchs[o])
+		for o := 0; o < lenURL; o++ {
+			searchURL(urlsSearchs[o], file)
 			log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 		}
 	}
@@ -116,23 +113,45 @@ func main() {
 	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 }
 
-func searchUrl(url string, file *os.File) {
+func searchURL(url string, file *os.File) {
 	x, err := goquery.ParseUrl(url)
 	if err == nil {
+		// обрезать от ненужной контактной информации
+		urlData := strings.Split(x.Find(".content").Text(), "Оценка проведена на основании информации")
 		// обработать для записи
-		massData := strings.Split(x.Find(".content").Text(), "   ")
+		massData := strings.Split(urlData[0], "  ")
 		for j := 0; j < len(massData)-1; j++ {
 			massData[j] = strings.Trim(massData[j], " ")
 		}
-		log.Println(massData)
+
+		// блок предварительной фильтрации
+		var finalData []string
+		for _, str := range massData {
+			// уберем пустые строки
+			if str != "" {
+				finalData = append(finalData, str)
+			}
+		}
 
 		// запись строки в файл (добавление)
 		// не совсем корректно, требуется фильтрация контента
-		if len(massData) > 1 {
-			_, err := file.WriteString(massData[7] + ";" + massData[9] + ";" + massData[10] + ";" + massData[13] + ";" + massData[15] + ";" + massData[17] + ";" + massData[19] + ";" + massData[20] + ";" + massData[21] + ";" + massData[22] + ";" + massData[32] + ";" + massData[35] + ";" + massData[54] + ";" + massData[59] + ";" + massData[101] + "\n")
+		if len(finalData) > 1 {
+			_, err := file.WriteString(url + ";")
 			if err != nil {
 				log.Fatalln(err)
 			}
+			for _, x := range finalData {
+				// TODO: обработка вывода для записи
+				_, err := file.WriteString(x + ";")
+				if err != nil {
+					log.Fatalln(err)
+				}
+			}
+			_, err = file.WriteString("\n")
+			if err != nil {
+				log.Fatalln(err)
+			}
+			// _, err := file.WriteString(massData[7] + ";" + massData[9] + ";" + massData[10] + ";" + massData[13] + ";" + massData[15] + ";" + massData[17] + ";" + massData[19] + ";" + massData[20] + ";" + massData[21] + ";" + massData[22] + ";" + massData[32] + ";" + massData[35] + ";" + massData[54] + ";" + massData[59] + ";" + massData[101] + "\n")
 		}
 	}
 	log.Println(err)
