@@ -178,6 +178,7 @@ func searchURL(url string, file *os.File) {
 
 // запись в файл строки
 func writeString(x string, file *os.File) {
+	// tab в виде разделителя
 	_, err := file.WriteString(x + "	")
 	if err != nil {
 		log.Fatalln(err)
