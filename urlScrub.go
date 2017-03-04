@@ -125,10 +125,7 @@ func searchURL(url string, file *os.File) {
 			}
 		}
 
-		// создание регулярных выражений только для записи некорректно
-		reStr, _ := regexp.Compile(`еще`)
 		// запись строки в файл (добавление)
-		// не совсем корректно, требуется фильтрация контента
 		if len(finalData) > 1 {
 			_, err := file.WriteString(url + "	")
 			if err != nil {
@@ -151,9 +148,22 @@ func searchURL(url string, file *os.File) {
 					// положение директора
 					writeString(strings.ToLower(x), file)
 				case y == 5 || y == 6:
+					reStr, _ := regexp.Compile(`еще`)
 					// основная деятельность
 					if !reStr.MatchString(x) {
-						writeString(strings.ToLower(x), file)
+						writeString(x, file)
+					}
+				case y == 7 || y == 8:
+					reStr, _ := regexp.Compile(`\d\d\.\d\d\.\d\d\d\d`)
+					// период регистрации компании
+					if reStr.MatchString(x) {
+						writeString(x, file)
+					}
+				case y > 9 && y < 14:
+					reStr, _ := regexp.Compile(`\d{10}`)
+					// ИНН
+					if reStr.MatchString(x) {
+						writeString(x, file)
 					}
 				}
 			}
