@@ -165,6 +165,30 @@ func searchURL(url string, file *os.File) {
 					if reStr.MatchString(x) {
 						writeString(x, file)
 					}
+				case y > 11 && y < 16:
+					reStr, _ := regexp.Compile(`\d{9}`)
+					// КПП
+					if reStr.MatchString(x) {
+						writeString(x, file)
+					}
+				case y > 12 && y < 18:
+					reStr, _ := regexp.Compile(`\d{13}`)
+					// ОГРН
+					if reStr.MatchString(x) {
+						writeString(x, file)
+					}
+				case y > 15 && y < 20:
+					reStr, _ := regexp.Compile(`\d{8}`)
+					// ОКПО
+					if reStr.MatchString(x) {
+						writeString(x, file)
+					}
+				case y > 19 && y < 27:
+					reStr, _ := regexp.Compile(`г..[а-яА-я].+`)
+					// адрес
+					if reStr.MatchString(x) {
+						writeString(x, file)
+					}
 				}
 			}
 			_, err = file.WriteString("\n")
