@@ -3,10 +3,10 @@ package main
 
 import (
 	"bufio"
-	"io"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
@@ -21,13 +21,11 @@ var opts struct {
 func main() {
 	flags.Parse(&opts)
 	pwdDir, _ := os.Getwd()
-	// создание файла log
+	// создание файла log для записи ошибок
 	fLog, err := os.OpenFile(pwdDir+`/log.txt`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// запись в err в log и консоль
-	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 	defer fLog.Close()
 
 	// создание файла отчета
@@ -35,36 +33,34 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 	defer file.Close()
 
-	getFile, err := file.Stat()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
-	if getFile.Size() <= 1 {
-		// заголовок
-		file.WriteString("Наименование;ФИО директора;Положение директора;Виды деятельности;Дата регистрации;Кол-во сотрудников;ИНН;КПП;ОГРН;ОКПО;Адрес;Сайт;Место в категории;Уставной капитал;Основной заказчик\n")
-	}
+	// TODO: заголовок привести к нормальному виду после корректировки вывода
+	/*
+		getFile, err := file.Stat()
+		if err != nil {
+			log.Fatalln(err)
+		}
 
+		if getFile.Size() <= 1 {
+			// заголовок
+			file.WriteString("Наименование;ФИО директора;Положение директора;Виды деятельности;Дата регистрации;Кол-во сотрудников;ИНН;КПП;ОГРН;ОКПО;Адрес;Сайт;Место в категории;Уставной капитал;Основной заказчик\n")
+		}
+	*/
 	// разобрать названия компаний для перебора
 	var massName []string
 	fileOpen, err := os.Open(opts.FileNameCompany)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 	// построчное считывание
 	scanner := bufio.NewScanner(fileOpen)
 	for scanner.Scan() {
 		massName = append(massName, scanner.Text())
-		log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 	defer fileOpen.Close()
 
 	for i := 0; i < len(massName); i++ {
@@ -75,7 +71,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		log.SetOutput(io.MultiWriter(fLog, os.Stdout))
+
 		// отложенное закрытие коннекта
 		defer resp.Body.Close()
 
@@ -84,7 +80,6 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 
 		// храниение итоговых ссылок
 		var urlsSearchs []string
@@ -97,7 +92,6 @@ func main() {
 			k := strings.Split(j, `&amp;sa=U&amp;ved=`)
 			// итоговая ссылка готова
 			urlsSearchs = append(urlsSearchs, "h"+k[0])
-			log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 		}
 
 		lenURL := 3
@@ -106,11 +100,9 @@ func main() {
 		}
 		for o := 0; o < lenURL; o++ {
 			searchURL(urlsSearchs[o], file)
-			log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 		}
 	}
 	log.Println("Готово")
-	log.SetOutput(io.MultiWriter(fLog, os.Stdout))
 }
 
 func searchURL(url string, file *os.File) {
@@ -133,26 +125,51 @@ func searchURL(url string, file *os.File) {
 			}
 		}
 
+		// создание регулярных выражений только для записи некорректно
+		reStr, _ := regexp.Compile(`еще`)
 		// запись строки в файл (добавление)
 		// не совсем корректно, требуется фильтрация контента
 		if len(finalData) > 1 {
-			_, err := file.WriteString(url + ";")
+			_, err := file.WriteString(url + "	")
 			if err != nil {
 				log.Fatalln(err)
 			}
-			for _, x := range finalData {
+			for y, x := range finalData {
 				// TODO: обработка вывода для записи
-				_, err := file.WriteString(x + ";")
-				if err != nil {
-					log.Fatalln(err)
+				// дальше разобрать через регулярки и номера подстрок
+				switch {
+				case y == 1:
+					// короткое наименование компании
+					writeString(x, file)
+				case y == 2:
+					// полное наименование компании
+					writeString(x, file)
+				case y == 3:
+					// ФИО руководителя
+					writeString(x, file)
+				case y == 4:
+					// положение директора
+					writeString(strings.ToLower(x), file)
+				case y == 5 || y == 6:
+					// основная деятельность
+					if !reStr.MatchString(x) {
+						writeString(strings.ToLower(x), file)
+					}
 				}
 			}
 			_, err = file.WriteString("\n")
 			if err != nil {
 				log.Fatalln(err)
 			}
-			// _, err := file.WriteString(massData[7] + ";" + massData[9] + ";" + massData[10] + ";" + massData[13] + ";" + massData[15] + ";" + massData[17] + ";" + massData[19] + ";" + massData[20] + ";" + massData[21] + ";" + massData[22] + ";" + massData[32] + ";" + massData[35] + ";" + massData[54] + ";" + massData[59] + ";" + massData[101] + "\n")
 		}
 	}
-	log.Println(err)
+	log.Printf("Ошибка парсинга страницы:\t%v\n", err)
+}
+
+// запись в файл строки
+func writeString(x string, file *os.File) {
+	_, err := file.WriteString(x + "	")
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
