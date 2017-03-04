@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dreddsa5dies/urlScrub.svg?branch=master)](https://travis-ci.org/dreddsa5dies/urlScrub)
+[![Build Status](https://travis-ci.org/dreddsa5dies/urlScrub.svg?branch=master)](https://travis-ci.org/dreddsa5dies/urlScrub)  
 ![IMAGE](img/urlScrub.png)
 ### urlScrub, программа для поиска данных о компаниях на [СБИС](http://sbis.ru)
 
