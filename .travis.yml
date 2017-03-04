@@ -9,4 +9,3 @@ before_install:
 
 script:
   - test -z "$(gofmt -s -l . | tee /dev/stderr)"
-  - go test -v ./...
