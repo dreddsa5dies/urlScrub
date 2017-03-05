@@ -114,7 +114,10 @@ func main() {
 			// итоговая ссылка готова
 			urlsSearchs = append(urlsSearchs, "h"+k[0])
 		}
-		log.Printf("Найдены такие ссылки:\t%v\n", urlsSearchs)
+		log.Printf("Найдены такие ссылки:\n")
+		for _, logURL := range urlsSearchs {
+			log.Printf("\t%v\n", logURL)
+		}
 
 		lenURL := 3
 		if len(urlsSearchs) < 3 {
@@ -150,10 +153,10 @@ func searchURL(url string, file, fileTXT *os.File) {
 		writeString(compNum[1], file)
 	} else {
 		writeString(compNum[0], file)
-		writeString("нет данных", file)
+		writeString("Нет данных", file)
 	}
 	// Основная деятельность
-	writeString(x.Find("div.cCard__OKVED-Name").Text(), file)
+	writeString(x.Find("div.cCard__OKVED-Name").Text()+"!!!", file)
 	// Адрес
 	writeString(x.Find("div.cCard__Contacts-Address").Text(), file)
 	// Широта и долгота
@@ -180,14 +183,23 @@ func searchURL(url string, file, fileTXT *os.File) {
 		writeString("", file)
 	}
 	// Контакты
-	writeString(x.Find("div.cCard__Contacts-Value").Text(), file)
+	writeString(x.Find("div.cCard__Contacts-Value").Text()+"!!!", file)
 	// Размер уставного капитала
 	writeString(x.Find("div.cCard__Owners-OwnerList-Sum").Text(), file)
 	// Сроки действия
 	writeString(x.Find("div.cCard__Status-Value").Text(), file)
 	// ИНН КПП ОГРН ОКПО
-	writeString(x.Find("div.cCard__MainReq-Right-Req-Line").Text(), file)
+	dataINN := strings.Split(x.Find("div.cCard__MainReq-Right-Req-Line").Text(), "    ")
+	// только ИНН
+	writeString(strings.TrimLeft(dataINN[0], "ИНН "), file)
+	// только КПП
+	writeString(strings.TrimLeft(dataINN[1], "КПП "), file)
+	// только ОГРН
+	writeString(strings.TrimLeft(dataINN[2], "ОГРН "), file)
+	// только ОКПО
+	writeString(strings.TrimLeft(dataINN[3], "ОКПО "), file)
 
+	// -----------------------------------------------------------
 	// вся инфа в текстовую справку
 	writeString(x.Find("div.cCard__CompanyDescription").Text(), fileTXT)
 	// новая строка
