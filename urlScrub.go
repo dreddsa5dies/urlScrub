@@ -133,7 +133,11 @@ func searchURL(url string, file, fileTXT *os.File) {
 	// Ссылка на сайте
 	writeString(url, file)
 	// Наименование
-	writeString(x.Find("div.cCard__MainReq-Name").Text(), file)
+	nameCo := strings.Split(x.Find("div.cCard__MainReq-Name").Text(), ", ")
+	// только наименование
+	writeString(nameCo[1], file)
+	// форма организации
+	writeString(nameCo[0], file)
 	// ФИО директора
 	writeString(x.Find("div.cCard__Director-Name").Text(), file)
 	// положение директора
