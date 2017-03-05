@@ -144,16 +144,20 @@ func searchURL(url string, file, fileTXT *os.File) {
 	// Адрес
 	writeString(x.Find("div.cCard__Contacts-Address").Text(), file)
 	// Широта и долгота
+	// через API Yandex
 	resp, err := http.Get("https://geocode-maps.yandex.ru/1.x/?geocode=" + x.Find("div.cCard__Contacts-Address").Text())
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	// координаты точки в ответе
 	point, err := regexp.Compile(`<lowerCorner>\d\d\.\d{4,6} \d\d\.\d{4,6}</lowerCorner>`)
 	pointsStr := string(point.Find(body))
+	// убираем теги
 	pointsStr = strings.TrimLeft(pointsStr, "<lowerCorner>")
 	pointsStr = strings.TrimRight(pointsStr, "</lowerCorner>")
+	// разделяем на широту и долготу
 	geoDATA := strings.Split(pointsStr, " ")
 	if len(geoDATA) > 1 {
 		writeString(geoDATA[0], file)
