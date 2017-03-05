@@ -85,6 +85,7 @@ func main() {
 
 	for i := 0; i < len(massName); i++ {
 		search := massName[i]
+		log.Printf("Ищу данные по компании:\t%v\n", search)
 
 		// запрос по url
 		resp, err := http.Get("https://www.google.ru/search?q=" + search + "+inurl%3Asbis.ru")
@@ -113,6 +114,7 @@ func main() {
 			// итоговая ссылка готова
 			urlsSearchs = append(urlsSearchs, "h"+k[0])
 		}
+		log.Printf("Найдены такие ссылки:\t%v\n", urlsSearchs)
 
 		lenURL := 3
 		if len(urlsSearchs) < 3 {
@@ -142,7 +144,14 @@ func searchURL(url string, file, fileTXT *os.File) {
 	writeString(x.Find("div.cCard__Director-Name").Text(), file)
 	// положение директора
 	// можно раскидать по количеству компаний еще
-	writeString(strings.ToLower(x.Find("div.cCard__Director-Position").Text()), file)
+	compNum := strings.Split(strings.ToLower(x.Find("div.cCard__Director-Position").Text()), "  ")
+	if len(compNum) > 1 {
+		writeString(compNum[0], file)
+		writeString(compNum[1], file)
+	} else {
+		writeString(compNum[0], file)
+		writeString("нет данных", file)
+	}
 	// Основная деятельность
 	writeString(x.Find("div.cCard__OKVED-Name").Text(), file)
 	// Адрес
@@ -190,6 +199,7 @@ func searchURL(url string, file, fileTXT *os.File) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Printf("Обработал по данным на:\t%v\n", nameCo[0])
 }
 
 // запись в файл строки
