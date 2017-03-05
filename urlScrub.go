@@ -3,9 +3,11 @@ package main
 
 import (
 	"bufio"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
@@ -141,12 +143,29 @@ func searchURL(url string, file, fileTXT *os.File) {
 	writeString(x.Find("div.cCard__OKVED-Name").Text(), file)
 	// Адрес
 	writeString(x.Find("div.cCard__Contacts-Address").Text(), file)
+	// Широта и долгота
+	resp, err := http.Get("https://geocode-maps.yandex.ru/1.x/?geocode=" + x.Find("div.cCard__Contacts-Address").Text())
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	point, err := regexp.Compile(`<lowerCorner>\d\d\.\d{4,6} \d\d\.\d{4,6}</lowerCorner>`)
+	pointsStr := string(point.Find(body))
+	pointsStr = strings.TrimLeft(pointsStr, "<lowerCorner>")
+	pointsStr = strings.TrimRight(pointsStr, "</lowerCorner>")
+	geoDATA := strings.Split(pointsStr, " ")
+	if len(geoDATA) > 1 {
+		writeString(geoDATA[0], file)
+		writeString(geoDATA[1], file)
+	} else {
+		writeString(geoDATA[0], file)
+		writeString("", file)
+	}
 	// Контакты
 	writeString(x.Find("div.cCard__Contacts-Value").Text(), file)
 	// Размер уставного капитала
 	writeString(x.Find("div.cCard__Owners-OwnerList-Sum").Text(), file)
-	// Количество сотрудников
-	writeString(x.Find("div.cCard__EmployeeResult").Text(), file)
 	// Сроки действия
 	writeString(x.Find("div.cCard__Status-Value").Text(), file)
 	// ИНН КПП ОГРН ОКПО
