@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
@@ -15,23 +14,42 @@ import (
 
 var opts struct {
 	FileNameCompany string `short:"o" long:"open" default:"./names.txt" description:"With the names of the companies file"`
-	FileFinal       string `short:"f" long:"final" default:"./final.csv" description:"The file with the saved information about the companies"`
+	FileFinal       string `short:"f" long:"final" default:"final.csv" description:"The file with the saved information about the companies"`
 }
 
 func main() {
+	// разбор флагов
 	flags.Parse(&opts)
+
+	// в какой папке исполняемы файл
 	pwdDir, _ := os.Getwd()
+
 	// создание файла log для записи ошибок
-	fLog, err := os.OpenFile(pwdDir+`/log.txt`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
+	fLog, err := os.OpenFile(pwdDir+`/.log`, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0640)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer fLog.Close()
 
-	// создание файла отчета
-	file, err := os.OpenFile(opts.FileFinal, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	// запись ошибок и инфы в файл
+	log.SetOutput(fLog)
+
+	// создание папки с отчетами
+	os.Mkdir(pwdDir+"/reports", 0755)
+
+	// создание файла отчета в формате csv
+	file, err := os.OpenFile(pwdDir+"/reports/"+opts.FileFinal, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		log.Fatalln(err)
+
+	}
+	defer file.Close()
+
+	// справка по компаниям
+	fileTXT, err := os.OpenFile(pwdDir+"/reports/reports.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Fatalln(err)
+
 	}
 	defer file.Close()
 
@@ -99,105 +117,52 @@ func main() {
 			lenURL = len(urlsSearchs)
 		}
 		for o := 0; o < lenURL; o++ {
-			searchURL(urlsSearchs[o], file)
+			searchURL(urlsSearchs[o], file, fileTXT)
 		}
 	}
 	log.Println("Готово")
 }
 
-func searchURL(url string, file *os.File) {
+func searchURL(url string, file, fileTXT *os.File) {
 	x, err := goquery.ParseUrl(url)
-	if err == nil {
-		// обрезать от ненужной контактной информации
-		urlData := strings.Split(x.Find(".content").Text(), "Оценка проведена на основании информации")
-		// обработать для записи
-		massData := strings.Split(urlData[0], "  ")
-		for j := 0; j < len(massData)-1; j++ {
-			massData[j] = strings.Trim(massData[j], " ")
-		}
-
-		// блок предварительной фильтрации
-		var finalData []string
-		for _, str := range massData {
-			// уберем пустые строки
-			if str != "" {
-				finalData = append(finalData, str)
-			}
-		}
-
-		// запись строки в файл (добавление)
-		if len(finalData) > 1 {
-			_, err := file.WriteString(url + "	")
-			if err != nil {
-				log.Fatalln(err)
-			}
-			for y, x := range finalData {
-				// TODO: обработка вывода для записи
-				// дальше разобрать через регулярки и номера подстрок
-				switch {
-				case y == 1:
-					// короткое наименование компании
-					writeString(x, file)
-				case y == 2:
-					// полное наименование компании
-					writeString(x, file)
-				case y == 3:
-					// ФИО руководителя
-					writeString(x, file)
-				case y == 4:
-					// положение директора
-					writeString(strings.ToLower(x), file)
-				case y == 5 || y == 6:
-					reStr, _ := regexp.Compile(`еще`)
-					// основная деятельность
-					if !reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				case y == 7 || y == 8:
-					reStr, _ := regexp.Compile(`\d\d\.\d\d\.\d\d\d\d`)
-					// период регистрации компании
-					if reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				case y > 9 && y < 14:
-					reStr, _ := regexp.Compile(`\d{10}`)
-					// ИНН
-					if reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				case y > 11 && y < 16:
-					reStr, _ := regexp.Compile(`\d{9}`)
-					// КПП
-					if reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				case y > 12 && y < 18:
-					reStr, _ := regexp.Compile(`\d{13}`)
-					// ОГРН
-					if reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				case y > 15 && y < 20:
-					reStr, _ := regexp.Compile(`\d{8}`)
-					// ОКПО
-					if reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				case y > 19 && y < 27:
-					reStr, _ := regexp.Compile(`г..[а-яА-я].+`)
-					// адрес
-					if reStr.MatchString(x) {
-						writeString(x, file)
-					}
-				}
-			}
-			_, err = file.WriteString("\n")
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}
+	if err != nil {
+		log.Fatalf("Ошибка парсинга страницы:\t%v\n", err)
 	}
-	log.Printf("Ошибка парсинга страницы:\t%v\n", err)
+	// Ссылка на сайте
+	writeString(url, file)
+	// Наименование
+	writeString(x.Find("div.cCard__MainReq-Name").Text(), file)
+	// ФИО директора
+	writeString(x.Find("div.cCard__Director-Name").Text(), file)
+	// положение директора
+	// можно раскидать по количеству компаний еще
+	writeString(strings.ToLower(x.Find("div.cCard__Director-Position").Text()), file)
+	// Основная деятельность
+	writeString(x.Find("div.cCard__OKVED-Name").Text(), file)
+	// Адрес
+	writeString(x.Find("div.cCard__Contacts-Address").Text(), file)
+	// Контакты
+	writeString(x.Find("div.cCard__Contacts-Value").Text(), file)
+	// Размер уставного капитала
+	writeString(x.Find("div.cCard__Owners-OwnerList-Sum").Text(), file)
+	// Количество сотрудников
+	writeString(x.Find("div.cCard__EmployeeResult").Text(), file)
+	// Сроки действия
+	writeString(x.Find("div.cCard__Status-Value").Text(), file)
+	// ИНН КПП ОГРН ОКПО
+	writeString(x.Find("div.cCard__MainReq-Right-Req-Line").Text(), file)
+
+	// вся инфа в текстовую справку
+	writeString(x.Find("div.cCard__CompanyDescription").Text(), fileTXT)
+	// новая строка
+	_, err = file.WriteString("\n")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	_, err = fileTXT.WriteString("\n-------------------------------------------\n")
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 // запись в файл строки
