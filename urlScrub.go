@@ -56,17 +56,16 @@ func main() {
 	defer file.Close()
 
 	// TODO: заголовок привести к нормальному виду после корректировки вывода
-	/*
-		getFile, err := file.Stat()
-		if err != nil {
-			log.Fatalln(err)
-		}
+	getFile, err := file.Stat()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-		if getFile.Size() <= 1 {
-			// заголовок
-			file.WriteString("Наименование;ФИО директора;Положение директора;Виды деятельности;Дата регистрации;Кол-во сотрудников;ИНН;КПП;ОГРН;ОКПО;Адрес;Сайт;Место в категории;Уставной капитал;Основной заказчик\n")
-		}
-	*/
+	if getFile.Size() <= 1 {
+		// заголовок
+		file.WriteString("Ссылка СБИС	Форма предприятия	Наименование	ФИО директора	Статус	Кол-во предприятий	Основное направление деятельности	Адрес	Широта	Долгота	Контакты	Уставной капитал	Действует с	ИНН	КПП	ОГРН	ОКПО\n")
+	}
+
 	// разобрать названия компаний для перебора
 	var massName []string
 	fileOpen, err := os.Open(opts.FileNameCompany)
@@ -112,7 +111,9 @@ func main() {
 			// надо убрать "левый" код в ссылке
 			k := strings.Split(j, `&amp;sa=U&amp;ved=`)
 			// итоговая ссылка готова
-			urlsSearchs = append(urlsSearchs, "h"+k[0])
+			if strings.HasPrefix(k[0], "ttps://sbis.ru/") {
+				urlsSearchs = append(urlsSearchs, "h"+k[0])
+			}
 		}
 		log.Printf("Найдены такие ссылки:\n")
 		for _, logURL := range urlsSearchs {
@@ -156,7 +157,7 @@ func searchURL(url string, file, fileTXT *os.File) {
 		writeString("Нет данных", file)
 	}
 	// Основная деятельность
-	writeString(x.Find("div.cCard__OKVED cCard__Wide").Text(), file)
+	writeString(x.Find("div.cCard__OKVED-Name").First().Text(), file)
 	// Адрес
 	writeString(x.Find("div.cCard__Contacts-Address").Text(), file)
 	// Широта и долгота
@@ -183,11 +184,16 @@ func searchURL(url string, file, fileTXT *os.File) {
 		writeString("", file)
 	}
 	// Контакты
-	writeString(x.Find("div.cCard__Contacts-Value").Text(), file)
+	writeString(x.Find("div.cCard__Contacts-Value").First().Text(), file)
 	// Размер уставного капитала
 	writeString(x.Find("div.cCard__Owners-OwnerList-Sum").Text(), file)
 	// Сроки действия
-	writeString(x.Find("div.cCard__Status-Value").Text(), file)
+	srokDATA := strings.Split(x.Find("div.cCard__Status-Value").First().Text(), "    ")
+	if strings.HasPrefix(srokDATA[0], "Действует с") {
+		writeString(strings.TrimLeft(srokDATA[0], "Действует с "), file)
+	} else {
+		writeString(srokDATA[0], file)
+	}
 	// ИНН КПП ОГРН ОКПО
 	dataINN := strings.Split(x.Find("div.cCard__MainReq-Right-Req-Line").Text(), "    ")
 	// только ИНН
