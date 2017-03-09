@@ -156,7 +156,7 @@ func searchURL(url string, file, fileTXT *os.File) {
 		writeString("Нет данных", file)
 	}
 	// Основная деятельность
-	writeString(x.Find("div.cCard__OKVED-Name").Text()+"!!!", file)
+	writeString(x.Find("div.cCard__OKVED cCard__Wide").Text(), file)
 	// Адрес
 	writeString(x.Find("div.cCard__Contacts-Address").Text(), file)
 	// Широта и долгота
@@ -183,7 +183,7 @@ func searchURL(url string, file, fileTXT *os.File) {
 		writeString("", file)
 	}
 	// Контакты
-	writeString(x.Find("div.cCard__Contacts-Value").Text()+"!!!", file)
+	writeString(x.Find("div.cCard__Contacts-Value").Text(), file)
 	// Размер уставного капитала
 	writeString(x.Find("div.cCard__Owners-OwnerList-Sum").Text(), file)
 	// Сроки действия
