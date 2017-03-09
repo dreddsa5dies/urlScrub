@@ -8,17 +8,17 @@
 * Поиск и запись данных о компаниях
 
 ## Input data
-* names.txt
-![IMAGE ALT TEXT HERE](img/names.png))
+* names.txt  
+![IMAGE ALT TEXT HERE](img/names.png)
 
 ## Output data
-* ./reports/final.csv
-![IMAGE ALT TEXT HERE](img/csv.png))
-* ./reports/reports.txt
-![IMAGE ALT TEXT HERE](img/txt.png))
+* ./reports/final.csv  
+![IMAGE ALT TEXT HERE](img/csv.png)
+* ./reports/reports.txt  
+![IMAGE ALT TEXT HERE](img/txt.png)
 
 ## Demo
-![IMAGE ALT TEXT HERE](img/demo.png))
+![IMAGE ALT TEXT HERE](img/demo.png)
 
 ### Usage
 
