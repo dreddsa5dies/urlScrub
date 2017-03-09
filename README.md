@@ -12,7 +12,7 @@
 ![IMAGE ALT TEXT HERE](img/names.png)
 
 ## Output data
-* ./reports/final.csv  
+* ./reports/final.csv - Tab delimiter  
 ![IMAGE ALT TEXT HERE](img/csv.png)
 * ./reports/reports.txt  
 ![IMAGE ALT TEXT HERE](img/txt.png)
