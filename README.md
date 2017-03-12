@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/dreddsa5dies/urlScrub.svg?branch=master)](https://travis-ci.org/dreddsa5dies/urlScrub) [![Go Report Card](https://goreportcard.com/badge/github.com/dreddsa5dies/urlScrub)](https://goreportcard.com/report/github.com/dreddsa5dies/urlScrub) [![GORef](https://godoc.org/github.com/dreddsa5dies/urlScrub?status.svg)](https://godoc.org/github.com/dreddsa5dies/urlScrub)  
-[![CircleCI Status](https://circleci.com/gh/dreddsa5dies/urlScrub.svg?style=shield)](https://circleci.com/gh/dreddsa5dies/urlScrub)  
+[![Build Status](https://travis-ci.org/dreddsa5dies/urlScrub.svg?branch=master)](https://travis-ci.org/dreddsa5dies/urlScrub) [![Go Report Card](https://goreportcard.com/badge/github.com/dreddsa5dies/urlScrub)](https://goreportcard.com/report/github.com/dreddsa5dies/urlScrub) [![GORef](https://godoc.org/github.com/dreddsa5dies/urlScrub?status.svg)](https://godoc.org/github.com/dreddsa5dies/urlScrub) [![CircleCI Status](https://circleci.com/gh/dreddsa5dies/urlScrub.svg?style=shield)](https://circleci.com/gh/dreddsa5dies/urlScrub)  
 
 ![IMAGE](img/urlScrub.png)
 
