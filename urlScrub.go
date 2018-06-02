@@ -1,4 +1,3 @@
-// urlScrab
 package main
 
 import (
